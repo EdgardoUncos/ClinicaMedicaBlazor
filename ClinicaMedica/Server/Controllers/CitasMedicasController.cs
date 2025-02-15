@@ -123,12 +123,21 @@ namespace ClinicaMedica.Server.Controllers
                 return Problem("Entity set 'ApplicationDbContext.CitasMedicas'  is null.");
             }
 
-            var citasMedicas = _mapper.Map<CitasMedicas>(citasMedicasCreacionDTO);
-            _context.CitasMedicas.Add(citasMedicas);
-            _context.DetalleCitas.AddRange(citasMedicas.DetalleCitas);
-            await _context.SaveChangesAsync();
+            try
+            {
+                var citasMedicas = _mapper.Map<CitasMedicas>(citasMedicasCreacionDTO);
+                _context.CitasMedicas.Add(citasMedicas);
+                _context.DetalleCitas.AddRange(citasMedicas.DetalleCitas);
+                await _context.SaveChangesAsync();
+                return CreatedAtAction("GetCitasMedicas", new { id = citasMedicas.CitaMedicaId }, citasMedicas);
+            }
+            catch (Exception ex)
+            {
+                return Problem(ex.Message);
+      
+            }
+                     
 
-            return CreatedAtAction("GetCitasMedicas", new { id = citasMedicas.CitaMedicaId }, citasMedicas);
         }
 
         // DELETE: api/CitasMedicas/5

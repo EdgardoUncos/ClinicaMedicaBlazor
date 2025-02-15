@@ -169,7 +169,7 @@
         {
             var newOrder = new CitasMedicasCreacionDTO();
             newOrder.PacienteId = OrdenVista.Pacientes.PacienteId;
-            newOrder.MedicoId = 1;
+            newOrder.MedicoId = 3;
             newOrder.DetalleCitas = (from d in OrdenVista.Detalles
                                      select new DetalleCitasCreacionDTO()
                                          {
