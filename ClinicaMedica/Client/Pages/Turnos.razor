@@ -49,7 +49,7 @@
         var response = await Http.GetAsync("api/Horarios");
         if (response.IsSuccessStatusCode)
         {
-            listaH = await response.Content.ReadAsAsync<List<HorariosDTO>>();
+            listaH = await response.Content.ReadFromJsonAsync<List<HorariosDTO>>();
         }
         else
         {

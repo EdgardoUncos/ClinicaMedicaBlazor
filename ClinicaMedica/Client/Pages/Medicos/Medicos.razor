@@ -1,0 +1,109 @@
+﻿@page "/medicos"
+@using ClinicaMedica.Shared.DTOs.Basic
+@inject HttpClient Http
+
+<PageTitle>Medicos</PageTitle>
+
+<p>
+    <a href="crearmedico">Agregar Medico</a>
+</p>
+
+@if (!string.IsNullOrEmpty(ErrorMessage))
+{
+    <div class="alert alert-danger">
+        <strong>Error:</strong>@ErrorMessage
+    </div>
+}
+
+@if(ListaMedicos != null && ListaMedicos.Any())
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>
+                    Apellido
+                </th>
+                <th>
+                    Especialidad
+                </th>
+                <th>
+                    EspecialidadId
+                </th>
+                <th>
+                    Sueldo
+                </th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in ListaMedicos)
+            {
+                <tr>
+                    <td>
+                        <input class="form-control" value="@(item.Persona?.Apellido ?? "N/A")" disabled="true" />
+
+                    </td>
+                    <td>
+                        <input class="form-control" value="@(item.Especialidades?.Detalle ?? "N/A")" disabled="true" />
+
+                    </td>
+                    <td>
+                        <input class="form-control" @bind-value=item.EspecialidadId disabled="true" />
+                    </td>
+                    <td>
+                        <input class="form-control" @bind-value=item.Sueldo disabled="true" />
+                    </td>
+                    <td>
+                        <button class="btn btn-success"><i class="bi bi-pen-fill"></i></button>
+                        <button class="btn btn-danger"><i class="bi bi-trash3-fill"></i></button>
+
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+else if (string.IsNullOrEmpty(ErrorMessage))
+{
+    <p>No hay medicos para mostrar</p>
+}
+
+
+
+@code{
+
+    List<MedicosDTO> ListaMedicos = new List<MedicosDTO>();
+    string ErrorMessage = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            ErrorMessage = "";
+            ListaMedicos = new List<MedicosDTO>();
+
+            var response = await Http.GetAsync("api/Medicos");
+            if (response.IsSuccessStatusCode)
+            {
+                var result = await response.Content.ReadFromJsonAsync<List<MedicosDTO>>();
+                ListaMedicos = result ?? new List<MedicosDTO>(); // Evita que ListaMedicos sea null
+
+                // Asegurar que cada objeto en ListaMedicos tiene las propiedades inicializadas
+                foreach (var item in ListaMedicos)
+                {
+                    item.Persona ??= new PersonasDTO();
+                    item.Especialidades ??= new EspecialidadesDTO();
+                }
+            }
+            else
+            {
+                ErrorMessage = $"Error al obtener los médicos. Código: {response.StatusCode}";
+            }
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = "No se pudo conectar con el servidor. Verifique su conexión.";
+            Console.WriteLine(ex.Message);
+        }
+    }
+}

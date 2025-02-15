@@ -52,7 +52,7 @@
             var response = await Http.GetAsync("api/CitasMedicas");
             if(response.IsSuccessStatusCode)
             {
-                var leoDes = await response.Content.ReadAsAsync<List<CitasMedicasDTO>>();
+                var leoDes = await response.Content.ReadFromJsonAsync<List<CitasMedicasDTO>>();
                 ListaOrdenes = leoDes;
             }
         }

@@ -1,0 +1,75 @@
+﻿@page "/crearmedico"
+@using ClinicaMedica.Shared
+@using ClinicaMedica.Shared.DTOs.Create
+@inject HttpClient Http
+@inject NavigationManager Nav
+
+<PageTitle>Nuevo Medico</PageTitle>
+
+<div class="container">
+    <div class="row">
+        <div class="col-md-4">
+            <EditForm Model="medico" OnValidSubmit="NuevoMedico">
+                <div class="form-group">
+                    <label class="form-label">Nombre</label>
+                    <input class="form-control" type="text" @bind-value="@medico.Persona.Nombre" />
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Apellido</label>
+                    <input class="form-control" type="text" @bind-value="@medico.Persona.Apellido" />
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Dni</label>
+                    <input class="form-control" type="text" @bind-value="@medico.Persona.Dni" />
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Direccion</label>
+                    <input class="form-control" type="text" @bind-value="@medico.Persona.Direccion" />
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Telefono</label>
+                    <input class="form-control" type="text" @bind-value="@medico.Persona.Telefono" />
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Especialidad</label>
+                    <input class="form-control" type="text" @bind-value="@medico.EspecialidadId" />
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Sueldo</label>
+                    <input class="form-control" type="text" @bind-value="@medico.Sueldo" />
+                </div>
+                <div class="form-group">
+                    <input type="submit" class="btn btn-primary" value="Crear" />
+                </div>
+
+            </EditForm>
+        </div>
+    </div>
+</div>
+
+@code {
+    MedicosCreacionDTO medico;
+
+    protected override async Task OnInitializedAsync()
+    {
+        medico = new MedicosCreacionDTO();
+        medico.Persona = new PersonasCreacionDTO();
+    }
+
+    private async Task NuevoMedico()
+    {
+        try
+        {
+            var response = await Http.PostAsJsonAsync("api/Medicos", medico);
+            if (response.IsSuccessStatusCode)
+                Console.WriteLine("Post Ok");
+            Nav.NavigateTo("/medicos");
+
+        }
+        catch (Exception ex)
+        {
+
+            Console.WriteLine("Error");
+        }
+    }
+}

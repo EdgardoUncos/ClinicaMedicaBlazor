@@ -52,7 +52,7 @@
 
         if(response.IsSuccessStatusCode)
         {
-            var leoDes = await response.Content.ReadAsAsync<List<ServiciosDTO>>();
+            var leoDes = await response.Content.ReadFromJsonAsync<List<ServiciosDTO>>();
             ListaServicios = leoDes;
             ordenVM.Servicios = (from p in leoDes select p).ToList();
         }

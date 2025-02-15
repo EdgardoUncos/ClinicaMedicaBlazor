@@ -1,0 +1,71 @@
+﻿@page "/crearpaciente"
+@using ClinicaMedica.Shared
+@using ClinicaMedica.Shared.DTOs.Create
+@inject HttpClient Http
+@inject NavigationManager Nav
+
+<PageTitle>Nuevo Paciente</PageTitle>
+
+<div class="container">
+    <div class="row">
+        <div class="col-md-4">
+            <EditForm Model="paciente" OnValidSubmit="NuevoPaciente">
+                <div class="form-group">
+                    <label class="form-label">Nombre</label>
+                    <input class="form-control" type="text" @bind-value="@paciente.Persona.Nombre" />
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Apellido</label>
+                    <input class="form-control" type="text"  @bind-value="@paciente.Persona.Apellido" />
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Dni</label>
+                    <input class="form-control" type="text" @bind-value="@paciente.Persona.Dni" />
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Direccion</label>
+                    <input class="form-control" type="text" @bind-value="@paciente.Persona.Direccion" />
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Telefono</label>
+                    <input class="form-control" type="text" @bind-value="@paciente.Persona.Telefono" />
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Obra Social</label>
+                    <input class="form-check" type="checkbox" @bind-value="@paciente.ObraSocial" />
+                </div>
+                <div class="form-group">
+                    <input type="submit" class="btn btn-primary" value="Crear" />
+                </div>
+
+            </EditForm>
+        </div>
+    </div>
+</div>
+
+@code {
+    PacientesCreacionDTO paciente;
+
+    protected override async Task OnInitializedAsync()
+    {
+        paciente = new PacientesCreacionDTO();
+        paciente.Persona = new PersonasCreacionDTO();
+    }
+
+    private async Task NuevoPaciente()
+    {
+        try
+        {
+            var response = await Http.PostAsJsonAsync("api/Pacientes", paciente);
+            if (response.IsSuccessStatusCode)
+                Console.WriteLine("Post Ok");
+            Nav.NavigateTo("/pacientes");
+
+        }
+        catch (Exception ex)
+        {
+
+            Console.WriteLine("Error");
+        }
+    }
+}

@@ -45,7 +45,7 @@
             var response = await Http.GetAsync($"api/Servicios/{id}");
             if(response.IsSuccessStatusCode)
             {
-                var leoDes = await response.Content.ReadAsAsync<ServiciosDTO>();
+                var leoDes = await response.Content.ReadFromJsonAsync<ServiciosDTO>();
                 model = leoDes;
             }
         }

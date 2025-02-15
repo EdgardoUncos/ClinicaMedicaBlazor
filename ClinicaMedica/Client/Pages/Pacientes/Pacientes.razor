@@ -8,6 +8,9 @@
     <h4>Lista de Pacientes</h4>
 </div>
 
+<div class="container">
+    <a class="btn btn-outline-primary" href="/crearpaciente">Crear nuevo paciente</a>
+</div>
 
 @if (!string.IsNullOrEmpty(ErrorMessage))
 {
@@ -65,7 +68,7 @@
 
             if (response.IsSuccessStatusCode)
             {
-                var leoDes = await response.Content.ReadAsAsync<List<PacientesDTO>>();
+                var leoDes = await response.Content.ReadFromJsonAsync<List<PacientesDTO>>();
                 ListaPaciente = leoDes;
             }
             else

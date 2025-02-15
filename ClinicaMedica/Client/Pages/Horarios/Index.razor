@@ -1,27 +1,34 @@
-﻿@page "/menuhorarios"
-@inject HttpClient Http
+﻿@page "/horarios"
+@using ClinicaMedica.Client.Services
 @using ClinicaMedica.Shared.DTOs.Basic
+@inject HttpClient Http
+
 
 <PageTitle>Horarios</PageTitle>
 
-@if (!string.IsNullOrEmpty(ErrorMessage))
+<p>
+    <a href="/crearhorario">Crear Horario</a>
+</p>
+
+@if(!string.IsNullOrEmpty(ErrorMessage))
 {
     <div class="alert alert-danger">
-        <strong>Error:</strong> @ErrorMessage
+        <strong>Error:</strong>@ErrorMessage
     </div>
 }
 
-@if (ListaHorarios != null && ListaHorarios.Any())
+@if (ListaHorarios!=null && ListaHorarios.Any())
 {
     <ClinicaMedica.Client.Components.Horarios ListaHorarios="ListaHorarios"></ClinicaMedica.Client.Components.Horarios>
 }
-else if (string.IsNullOrEmpty(ErrorMessage))
+else if(string.IsNullOrEmpty(ErrorMessage))
 {
     <p>No hay horarios disponibles.</p>
 }
 
-@code {
-    public List<HorariosDTO> ListaHorarios { get; set; } = new List<HorariosDTO>();
+
+@code{
+    public List<HorariosDTO> ListaHorarios;
     string ErrorMessage = "";
 
     protected override async Task OnInitializedAsync()
@@ -29,8 +36,7 @@ else if (string.IsNullOrEmpty(ErrorMessage))
         try
         {
             var response = await Http.GetAsync("api/Horarios");
-
-            if (response.IsSuccessStatusCode)
+            if(response.IsSuccessStatusCode)
             {
                 ListaHorarios = await response.Content.ReadFromJsonAsync<List<HorariosDTO>>();
             }
@@ -38,13 +44,14 @@ else if (string.IsNullOrEmpty(ErrorMessage))
             {
                 ErrorMessage = $"Error al obtener los horarios. Código: {response.StatusCode}";
             }
-           
+        }
+        catch (HttpRequestException ex)
+        {
+            Console.WriteLine($"Error en la conexión con la API: {ex.Message}");
         }
         catch (Exception ex)
         {
-            ErrorMessage = "No se pudo conectar con el servidor. Verifique su conexión.";
-            Console.WriteLine(ex.Message);
+            Console.WriteLine($"Error inesperado: {ex.Message}");
         }
     }
 }
-

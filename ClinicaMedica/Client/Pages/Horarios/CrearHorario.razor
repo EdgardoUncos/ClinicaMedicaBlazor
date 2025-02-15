@@ -1,0 +1,75 @@
+﻿@page "/crearhorario"
+@using ClinicaMedica.Client.Services
+@using ClinicaMedica.Shared.DTOs.Basic
+@using ClinicaMedica.Shared.DTOs.Create
+@inject HttpClient Http
+@inject NavigationManager Nav
+
+
+<PageTitle>Crear Horario</PageTitle>
+
+<p>
+    <a href="/horarios">Regrasar</a>
+</p>
+
+
+@if (!string.IsNullOrEmpty(ErrorMessage))
+{
+    <div class="alert alert-danger">
+        <strong>Error:</strong>@ErrorMessage
+    </div>
+}
+
+<div class="container">
+    <div class="row">
+        <div class="col-md-4">
+            <EditForm OnValidSubmit="Crear" Model="horario">
+                <div class="form-group">
+                    <label asp-for="HorarioInicio" class="control-label"></label>
+                    <input  @bind-value=horario.HorarioInicio class="form-control" />
+                   
+                </div>
+                <div class="form-group">
+                    <label asp-for="HorarioFin" class="control-label"></label>
+                    <input @bind-value="horario.HorarioFin" class="form-control" />
+                   
+                </div>
+                <div class="form-group">
+                    <input type="submit" value="Create" class="btn btn-primary" />
+                </div>
+            </EditForm>
+        </div>
+    </div>
+</div>
+
+
+
+
+@code{
+    public HorariosCreacionDTO horario = new HorariosCreacionDTO();
+    string ErrorMessage = "";
+
+    public async Task Crear()
+    {
+        try
+        {
+            var response = await Http.PostAsJsonAsync("api/Horarios", horario);
+
+            if(response.IsSuccessStatusCode)
+            {
+                Nav.NavigateTo("/horarios");
+            }
+            else
+            {
+                ErrorMessage = $"Ocurrio un error : {response.StatusCode}";
+            }
+        }
+        catch (Exception)
+        {
+            
+            throw;
+        }
+    }
+
+    
+}

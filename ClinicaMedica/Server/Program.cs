@@ -20,6 +20,18 @@ builder.Services.AddAutoMapper(typeof(Program).Assembly);
 
 builder.Services.AddRazorPages();
 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAll",
+        policy =>
+        {
+            policy.AllowAnyOrigin()
+                  .AllowAnyMethod()
+                  .AllowAnyHeader();
+        });
+});
+
+
 // Agregar servicios de Swagger
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
@@ -57,6 +69,10 @@ builder.Services.AddSwaggerGen(c =>
 
 var app = builder.Build();
 
+
+
+
+
 // Habilitar Swagger solo en desarrollo
 if (app.Environment.IsDevelopment() || true)
 {
@@ -86,7 +102,7 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
-
+app.UseCors("AllowAll");
 app.MapRazorPages();
 app.MapControllers();
 app.MapFallbackToFile("index.html");
