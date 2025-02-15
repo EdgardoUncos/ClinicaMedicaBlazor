@@ -1,0 +1,82 @@
+﻿@page "/pacientes"
+@using ClinicaMedica.Shared.DTOs.Basic
+@inject HttpClient Http
+
+<PageTitle>Pacientes</PageTitle>
+
+<div class="container">
+    <h4>Lista de Pacientes</h4>
+</div>
+
+
+@if (!string.IsNullOrEmpty(ErrorMessage))
+{
+    <div class="alert alert-danger">
+        <strong>Error:</strong> @ErrorMessage
+    </div>
+}
+
+<div class="container">
+    <table class="table">
+        <thead>
+            <tr>
+                <td>Nombre</td>
+                <td>Apellido</td>
+                <td>Obra Social</td>
+                <td>Acciones</td>
+            </tr>
+        </thead>
+        <tbody>
+            @if (ListaPaciente != null && ListaPaciente.Any())
+            {
+                @foreach (var paciente in ListaPaciente)
+                {
+                    <tr>
+                        <td>@paciente.Persona.Nombre</td>
+                        <td>@paciente.Persona.Apellido</td>
+                        <td>@paciente.ObraSocial</td>
+                        <td>
+                            <a class="btn btn-primary" href="OrdenMedica/@paciente.PacienteId">Orden Medica</a>
+                            <button class="btn btn-success"><i class="bi bi-pen-fill"></i></button>
+                            <button class="btn btn-danger"><i class="bi bi-trash3-fill"></i></button>
+                        </td>
+                    </tr>
+                }
+            }
+            else if (string.IsNullOrEmpty(ErrorMessage))
+            {
+                <tr>
+                    <td colspan="4" class="text-center">No hay pacientes disponibles.</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+@code {
+    List<PacientesDTO> ListaPaciente = new List<PacientesDTO>();
+    string ErrorMessage = "";
+
+    protected async override Task OnInitializedAsync()
+    {
+        try
+        {
+            var response = await Http.GetAsync("api/Pacientes");
+
+            if (response.IsSuccessStatusCode)
+            {
+                var leoDes = await response.Content.ReadAsAsync<List<PacientesDTO>>();
+                ListaPaciente = leoDes;
+            }
+            else
+            {
+                ErrorMessage = $"Error al obtener los pacientes. Código: {response.StatusCode}";
+            }
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = "No se pudo conectar con el servidor. Verifique su conexión.";
+            Console.WriteLine(ex.Message);
+        }
+    }
+}

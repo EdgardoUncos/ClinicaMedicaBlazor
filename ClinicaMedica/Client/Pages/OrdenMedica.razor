@@ -1,0 +1,198 @@
+﻿@page "/OrdenMedica/{id:int?}"
+@inject HttpClient Http
+@inject NavigationManager Nav
+@using ClinicaMedica.Shared.DTOs.Basic
+@using ClinicaMedica.Shared.DTOs.Create
+@using ClinicaMedica.Shared.ViewModels
+
+
+
+<div class="container">
+    <div class="card">
+        <div class="card-header">Orden Medica</div>
+        <div class="card-body">
+            @if (isLoading)
+            {
+                <div class="text-center">
+                    <img src="~/ZKZg.gif" alt="Cargando..." width="50" height="50" />
+                    <p>Cargando datos...</p>
+                </div>
+            }
+            else
+            {
+                <div class="row">
+                    <div class="col-sm-4">
+                        <label class="form-label">Id Paciente</label>
+                        <input class="form-control-sm" type="text" @bind-value=OrdenVista.Pacientes.PacienteId disabled />
+                    </div>
+                    <div class="col-sm-4">
+                        <label class="form-label">Nombre Paciente</label>
+                        <input class="form-control-sm" type="text" @bind-value=OrdenVista.Pacientes.Persona.Nombre disabled />
+                    </div>
+                    <div class="col-sm-4">
+                        <label class="form-label">Apellido</label>
+                        <input class="form-control-sm" type="text" @bind-value=OrdenVista.Pacientes.Persona.Apellido disabled />
+                    </div>
+                </div>
+                <hr />
+                <div class="row align-items-end">
+                    <div class="col-sm-3">
+                        <label class="form-label">Servicio</label>
+                        <select class="form-select" @onchange=FirsDropChange>
+                            <option value="">Seleccionar servicio</option>
+                            @foreach (var item in OrdenVista.Servicios)
+                            {
+                                <option value="@item.ServicioId">@item.Nombre</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-sm-3">
+                        <label class="form-label">Precio</label>
+                        <input class="form-control-sm" type="text" disabled @bind-value=priceService />
+                    </div>
+                    <div class="col-sm-3">
+                        <label class="form-label">Cantidad</label>
+                        <input class="form-control-sm" type="number" @bind-value=Quantity />
+                    </div>
+                    <div class="col-sm-3">
+                        <button class="btn btn-success btn-sm" @onclick=AgregarDetalle>Agregar</button>
+                        <button class="btn btn-primary btn-sm" @onclick=CerrarOrden>Cerrar Orden</button>
+                    </div>
+                </div>
+                <hr />
+                <div class="row">
+                    <div class="col-sm-12">
+                        <table class="table table-bordered table-sm">
+                            <thead>
+                                <tr class="table-dark">
+                                    <th>Código</th>
+                                    <th>Servicio</th>
+                                    <th>Precio</th>
+                                    <th>Cantidad</th>
+                                    <th>Total</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in OrdenVista.Detalles)
+                                {
+                                    <tr>
+                                        <td>@item.ServicioId</td>
+                                        <td>@item.NombreServicio</td>
+                                        <td>@item.Precio</td>
+                                        <td>@item.Cantidad</td>
+                                        <td>@item.Total</td>
+                                    </tr>
+                                }
+                            </tbody>
+                            <tfoot>
+                                <tr>
+                                    <th colspan="4" class="text-end">Total General</th>
+                                    <th>@totalGeneral.ToString("C", new System.Globalization.CultureInfo("es-AR"))</th>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+
+
+
+@code {
+    [Parameter] public int? id { get; set; }
+    private int Quantity { get; set; } = 1;
+    private string priceService = "0.00";
+    private ServiciosDTO selectedService;
+    private bool isLoading = true;
+    private OrdenMVM OrdenVista = new();
+
+    float totalGeneral;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (id.HasValue)
+        {
+            var res = await Http.GetAsync($"api/Pacientes/{id}");
+            if (res.IsSuccessStatusCode)
+                OrdenVista.Pacientes = await res.Content.ReadAsAsync<PacientesDTO>();
+
+            var response = await Http.GetAsync("api/Servicios");
+            if (response.IsSuccessStatusCode)
+                OrdenVista.Servicios = await response.Content.ReadAsAsync<List<ServiciosDTO>>();
+
+            OrdenVista.Detalles = new List<DetallesVM>();
+        }
+        isLoading = false;
+    }
+
+    private void FirsDropChange(ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value?.ToString(), out int selectedServiceId))
+        {
+            selectedService = OrdenVista.Servicios.FirstOrDefault(s => s.ServicioId == selectedServiceId);
+            priceService = selectedService?.Precio.ToString("F2") ?? "0.00";
+        }
+    }
+
+    private void AgregarDetalle()
+    {
+        if (Quantity <= 0 || selectedService == null)
+            return;
+
+        var existingDetail = OrdenVista.Detalles.FirstOrDefault(d => d.ServicioId == selectedService.ServicioId);
+        if (existingDetail != null)
+        {
+            existingDetail.Cantidad += Quantity;
+            existingDetail.Total = existingDetail.Precio * existingDetail.Cantidad;
+        }
+        else
+        {
+            OrdenVista.Detalles.Add(new DetallesVM
+                {
+                    ServicioId = selectedService.ServicioId,
+                    NombreServicio = selectedService.Nombre,
+                    Precio = selectedService.Precio,
+                    Cantidad = Quantity,
+                    Total = selectedService.Precio * Quantity
+                });
+        }
+
+        totalGeneral = OrdenVista.Detalles.Sum(detail => detail.Total);
+    }
+
+    private async Task CerrarOrden()
+    {
+        try
+        {
+            var newOrder = new CitasMedicasCreacionDTO();
+            newOrder.PacienteId = OrdenVista.Pacientes.PacienteId;
+            newOrder.MedicoId = 1;
+            newOrder.DetalleCitas = (from d in OrdenVista.Detalles
+                                     select new DetalleCitasCreacionDTO()
+                                         {
+                                             CitaMedicaId = 0,
+                                             ServicioId = d.ServicioId,
+                                             Cantidad = d.Cantidad
+                                         }).ToList();
+            newOrder.Total = totalGeneral;
+
+            var response = await Http.PostAsJsonAsync("api/CitasMedicas", newOrder);
+            if(response.IsSuccessStatusCode)
+            {
+                Console.WriteLine("Orden Cerrada");
+            }
+            
+            Nav.NavigateTo("/pacientes");
+
+        }
+        catch (Exception)
+        {
+            
+            throw;
+        }
+    }
+}
+

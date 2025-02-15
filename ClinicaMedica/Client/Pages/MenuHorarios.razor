@@ -1,0 +1,49 @@
+﻿@page "/menuhorarios"
+@inject HttpClient Http
+@using ClinicaMedica.Shared.DTOs.Basic
+
+<PageTitle>Horarios</PageTitle>
+
+@if (!string.IsNullOrEmpty(ErrorMessage))
+{
+    <div class="alert alert-danger">
+        <strong>Error:</strong> @ErrorMessage
+    </div>
+}
+
+@if (ListaHorarios != null && ListaHorarios.Any())
+{
+    <ClinicaMedica.Client.Components.Horarios ListaHorarios="ListaHorarios"></ClinicaMedica.Client.Components.Horarios>
+}
+else if (string.IsNullOrEmpty(ErrorMessage))
+{
+    <p>No hay horarios disponibles.</p>
+}
+
+@code {
+    public List<HorariosDTO> ListaHorarios { get; set; } = new List<HorariosDTO>();
+    string ErrorMessage = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var response = await Http.GetAsync("api/Horarios");
+
+            if (response.IsSuccessStatusCode)
+            {
+                ListaHorarios = await response.Content.ReadAsAsync<List<HorariosDTO>>();
+            }
+            else
+            {
+                ErrorMessage = $"Error al obtener los horarios. Código: {response.StatusCode}";
+            }
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = "No se pudo conectar con el servidor. Verifique su conexión.";
+            Console.WriteLine(ex.Message);
+        }
+    }
+}
+

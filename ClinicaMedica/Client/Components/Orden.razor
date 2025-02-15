@@ -1,0 +1,133 @@
+﻿@inject HttpClient Http
+
+@using ClinicaMedica.Shared.DTOs.Basic
+@using ClinicaMedica.Shared.DTOs.Create
+@using ClinicaMedica.Shared.ViewModels
+
+<div class="container">
+    <div class="card">
+        <div class="card-header">Orden Medica</div>
+        <div class="card-body">
+                <div class="row">
+                    <div class="col-sm-4">
+                        <label class="form-label">Id Paciente</label>
+                        <input class="form-control-sm" type="text" @bind-value=OrdenVista.Pacientes.PacienteId disabled />
+                    </div>
+                    <div class="col-sm-4">
+                        <label class="form-label">Nombre Paciente</label>
+                        <input class="form-control-sm" type="text" @bind-value=OrdenVista.Pacientes.Persona.Nombre disabled />
+                    </div>
+                    <div class="col-sm-4">
+                        <label class="form-label">Apellido</label>
+                        <input class="form-control-sm" type="text" @bind-value=OrdenVista.Pacientes.Persona.Apellido disabled />
+                    </div>
+                </div>
+                <hr />
+                
+                <div class="row">
+                    <div class="col-sm-12">
+                        <table class="table table-bordered table-sm">
+                            <thead>
+                                <tr class="table-dark">
+                                    <th>Código</th>
+                                    <th>Servicio</th>
+                                    <th>Precio</th>
+                                    <th>Cantidad</th>
+                                    <th>Total</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in OrdenVista.Detalles)
+                                {
+                                    <tr>
+                                        <td>@item.ServicioId</td>
+                                        <td>@item.NombreServicio</td>
+                                        <td>@item.Precio</td>
+                                        <td>@item.Cantidad</td>
+                                        <td>@item.Total</td>
+                                    </tr>
+                                }
+                            </tbody>
+                            <tfoot>
+                                <tr>
+                                    <th colspan="4" class="text-end">Total General</th>
+                                    <th>@totalGeneral.ToString("C", new System.Globalization.CultureInfo("es-AR"))</th>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public int id { get; set; }
+
+    public OrdenMVM OrdenVista { get; set; }
+
+    private int Quantity { get; set; } = 1;
+    private string priceService = "0.00";
+    private ServiciosDTO selectedService;
+    private bool isLoading = true;
+
+    float totalGeneral;
+
+    
+
+    private void AgregarDetalle()
+    {
+        if (Quantity <= 0 || selectedService == null)
+            return;
+
+        var existingDetail = OrdenVista.Detalles.FirstOrDefault(d => d.ServicioId == selectedService.ServicioId);
+        if (existingDetail != null)
+        {
+            existingDetail.Cantidad += Quantity;
+            existingDetail.Total = existingDetail.Precio * existingDetail.Cantidad;
+        }
+        else
+        {
+            OrdenVista.Detalles.Add(new DetallesVM
+                {
+                    ServicioId = selectedService.ServicioId,
+                    NombreServicio = selectedService.Nombre,
+                    Precio = selectedService.Precio,
+                    Cantidad = Quantity,
+                    Total = selectedService.Precio * Quantity
+                });
+        }
+
+        totalGeneral = OrdenVista.Detalles.Sum(detail => detail.Total);
+    }
+
+    private async Task CerrarOrden()
+    {
+        try
+        {
+            var newOrder = new CitasMedicasCreacionDTO();
+            newOrder.PacienteId = OrdenVista.Pacientes.PacienteId;
+            newOrder.MedicoId = 1;
+            newOrder.DetalleCitas = (from d in OrdenVista.Detalles
+                                     select new DetalleCitasCreacionDTO()
+                                         {
+                                             CitaMedicaId = 0,
+                                             ServicioId = d.ServicioId,
+                                             // falta cantidad
+                                         }).ToList();
+
+            var response = await Http.PostAsJsonAsync("api/CitasMedicas", newOrder);
+            if (response.IsSuccessStatusCode)
+            {
+                Console.WriteLine("Orden Cerrada");
+            }
+
+        }
+        catch (Exception)
+        {
+
+            throw;
+        }
+    }
+}
