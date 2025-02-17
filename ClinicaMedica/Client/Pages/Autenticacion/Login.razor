@@ -10,22 +10,23 @@
 
 <div class="container">
     <div class="row">
-        <div class="col-md-4">
+        <div class="col-md-6">
             <div class="card">
                 <div class="card-body">
                     <div>
                         <div class="text-danger"></div>
                         <div class="mb-3">
-                            <label for="Email" class="form-label"></label>
+                            <label class="form-label">Nombre Usuarios</label>
                             <input class="form-control" autocomplete="off" @bind-value=usuario.NombreUsuario />
                         </div>
 
                         <div class="mb-3">
-                            <label for="Password" class="form-label"></label>
+                            <label for="Password" class="form-label">Contraseña</label>
                             <input type="password" class="form-control" @bind-value=usuario.Password />
                         </div>
 
                         <button class="btn btn-primary" @onclick=Loguear>Login</button>
+                        <a class="btn btn-success" href="register">Crear una cuenta nueva</a>
                     </div>
                 </div>
             </div>
@@ -33,7 +34,6 @@
     </div>
 </div>
 
-<button class="btn btn-secondary" @onclick="Logout">Logout</button>
 
 @code {
     private LoginUsuario usuario = new LoginUsuario();

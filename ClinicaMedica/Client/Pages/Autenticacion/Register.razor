@@ -1,36 +1,57 @@
 ﻿@page "/register"
+@using ClinicaMedica.Shared.DTOs.Create
 @using ClinicaMedica.Shared.Models
 @inject HttpClient Http
 @inject NavigationManager Nav
 @inject IJSRuntime JS
 
-<PageTitle>Login</PageTitle>
+<PageTitle>Registro</PageTitle>
 
-<input placeholder="Usuario" @bind-value=usuario.NombreUsuario />
-<input placeholder="Password" @bind-value=usuario.Password />
-<button class="btn btn-primary" @onclick="Loguear">Login</button>
+<div class="container">
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-body">
+                    <div>
+                        <div class="text-danger"></div>
+                        <div class="mb-3">
+                            <label class="form-label">Nombre Usuarios</label>
+                            <input class="form-control" autocomplete="off" @bind-value=usuario.NombreUsuario />
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Password</label>
+                            <input class="form-control" autocomplete="off" @bind-value=usuario.Password />
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="Password" class="form-label">Rol</label>
+                            <input type="password" class="form-control" @bind-value=usuario.Rol />
+                        </div>
+
+                        <button class="btn btn-primary" @onclick=Registrarse>Registro</button>
+                        <a class="btn btn-success" href="login">Deseo Loguearme</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 
 @code {
-    private LoginUsuario usuario = new LoginUsuario();
+    private UsuarioDTO usuario = new UsuarioDTO();
     string token = "";
 
-    async Task Loguear()
+    async Task Registrarse()
     {
-        var resultado = await Http.PostAsJsonAsync("Usuarios/Login", usuario);
-        token = await resultado.Content.ReadAsStringAsync();
-        Console.WriteLine(token);
+        var resultado = await Http.PostAsJsonAsync("api/Usuarios/Registrar", usuario);
+
+        if (resultado.IsSuccessStatusCode)
+        {
+            Console.WriteLine("Registro Exitoso");
+            Nav.NavigateTo("/exito");
+        }
 
     }
-
-    private async Task GuardarSesion()
-    {
-        await JS.InvokeVoidAsync("localStorage.setItem", "Token", token);
-    }
-
-    private async Task ObtenerUsuario()
-    {
-        token = await JS.InvokeAsync<string>("localStorage.getItem", "Token");
-        Console.WriteLine(token);
-    }
-
+        
 }
