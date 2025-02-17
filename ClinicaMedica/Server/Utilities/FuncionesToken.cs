@@ -42,7 +42,8 @@ namespace ClinicaMedica.Server.Utilities
             var _claims = new[]
             {
                 new Claim(JwtRegisteredClaimNames.NameId,usuario.UsuarioId.ToString()),
-                new Claim("usuario",usuario.NombreUsuario),
+                new Claim(ClaimTypes.Name, usuario.NombreUsuario),
+                new Claim(ClaimTypes.Role, usuario.Rol)
 
             };
 
