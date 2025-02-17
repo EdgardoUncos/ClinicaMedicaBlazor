@@ -1,0 +1,35 @@
+﻿@page "/prueba"
+@inject AuthenticationStateProvider AuthStateProvider
+
+@using Microsoft.AspNetCore.Components.Authorization
+
+<h3>Página de Prueba de Autenticación</h3>
+
+<AuthorizeView>
+    <Authorized>
+        <p>Bienvenido, @context.User.Identity.Name</p>
+        <button @onclick="Logout">Cerrar sesión</button>
+    </Authorized>
+    <NotAuthorized>
+        <p>No estás autenticado. Inicia sesión para ver el contenido.</p>
+        <button @onclick="Login">Iniciar sesión</button>
+    </NotAuthorized>
+</AuthorizeView>
+
+@code {
+    private async Task Login()
+    {
+        if (AuthStateProvider is CustomAuthStateProvider customAuthStateProvider)
+        {
+            customAuthStateProvider.MarkUserAsAuthenticated("UsuarioDePrueba");
+        }
+    }
+
+    private async Task Logout()
+    {
+        if (AuthStateProvider is CustomAuthStateProvider customAuthStateProvider)
+        {
+            customAuthStateProvider.MarkUserAsLoggedOut();
+        }
+    }
+}

@@ -1,4 +1,6 @@
 ﻿@inherits LayoutComponentBase
+@inject IJSRuntime JS
+@inject AuthenticationStateProvider AuthStateProv
 
 <div class="page">
     <div class="sidebar">
@@ -6,12 +8,36 @@
     </div>
 
     <main>
-        <div class="top-row px-4">
-            <a href="https://docs.microsoft.com/aspnet/" target="_blank">About</a>
-        </div>
+        <AuthorizeView>
+            <Authorized>
+                <div class="top-row px-4">
+                    <a href="https://docs.microsoft.com/aspnet/" target="_blank">@context.User.Identity</a>
+                </div>
+            </Authorized>
+            <NotAuthorized>
+                <div class="top-row px-4">
+                    <a href="https://docs.microsoft.com/aspnet/" target="_blank">About</a>
+                </div>
+            </NotAuthorized>
+        </AuthorizeView>
 
         <article class="content px-4">
             @Body
         </article>
     </main>
 </div>
+
+@code {
+    string email = "";
+    string token = "";
+
+    private async Task Logout()
+    {
+        await JS.InvokeVoidAsync("localStorage.removeItem", "Token");
+        await AuthStateProv.GetAuthenticationStateAsync();
+    }
+    protected override async Task OnInitializedAsync()
+    {
+        await AuthStateProv.GetAuthenticationStateAsync();
+    }
+}

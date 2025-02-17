@@ -1,0 +1,78 @@
+﻿@page "/login"
+@using ClinicaMedica.Shared.Models
+@using Microsoft.AspNetCore.Components.Authorization
+@inject HttpClient Http
+@inject NavigationManager Nav
+@inject IJSRuntime JS
+@inject AuthenticationStateProvider AuthStateProv
+
+<PageTitle>Login</PageTitle>
+
+<div class="container">
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <div>
+                        <div class="text-danger"></div>
+                        <div class="mb-3">
+                            <label for="Email" class="form-label"></label>
+                            <input class="form-control" autocomplete="off" @bind-value=usuario.NombreUsuario />
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="Password" class="form-label"></label>
+                            <input type="password" class="form-control" @bind-value=usuario.Password />
+                        </div>
+
+                        <button class="btn btn-primary" @onclick=Loguear>Login</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<button class="btn btn-secondary" @onclick="Logout">Logout</button>
+
+@code {
+    private LoginUsuario usuario = new LoginUsuario();
+    string token = "";
+
+    async Task Loguear()
+    {
+        var resultado = await Http.PostAsJsonAsync("api/Usuarios/Login", usuario);
+
+        if (resultado.IsSuccessStatusCode)
+        {
+            token = await resultado.Content.ReadAsStringAsync();
+
+            await JS.InvokeVoidAsync("localStorage.setItem", "Token", token);
+
+            if (AuthStateProv is CustomAuthStateProvider authProvider)
+            {
+                authProvider.MarkUserAsAuthenticated(token);
+            }
+
+            Console.WriteLine("Token guardado y usuario autenticado.");
+            usuario.NombreUsuario = "";
+            usuario.Password = "";
+        }
+        else
+        {
+            Console.WriteLine("Error en el login.");
+        }
+    }
+
+    private async Task Logout()
+    {
+        await JS.InvokeVoidAsync("localStorage.removeItem", "Token");
+
+        if (AuthStateProv is CustomAuthStateProvider authProvider)
+        {
+            authProvider.MarkUserAsLoggedOut();
+        }
+
+        Console.WriteLine("Sesión cerrada.");
+    }
+}
